@@ -273,7 +273,7 @@ class AnnotateSamples:
             A function that calculates p-value. It can be either
             PFUN_BINOMIAL that uses binom.sf or
             PFUN_HYPERGEOMETRIC that uses hypergeom.sf.
-        data : Orange.data.Table
+        data : pd.DataFrame
             Tabular data with gene expressions - we need that to compute scores.
         scoring : str, optional (default=SCORING_EXP_RATIO)
             Type of scoring
