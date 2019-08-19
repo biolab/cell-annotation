@@ -14,15 +14,21 @@ def is_sorted(l):
 
 
 def FDR(p_values, dependent=False, m=None, ordered=False):
-    """ `False Discovery Rate
+    """
+    `False Discovery Rate
     <http://en.wikipedia.org/wiki/False_discovery_rate>`_
     correction on a list of p-values.
 
-    :param p_values: a list of p-values.
-    :param dependent: use correction for dependent hypotheses (default False).
-    :param m: number of hypotheses tested (default ``len(p_values)``).
-    :param ordered: prevent sorting of p-values if they are already sorted
-    (default False).
+    Parameters
+    ----------
+    p_values : list
+        List of p-values
+    dependent : bool
+        Use correction for dependent hypotheses (default False).
+    m : int
+        Number of hypotheses tested (default ``len(p_values)``).
+    ordered : bool
+        Prevent sorting of p-values if they are already sorted (default False).
     """
 
     if not ordered:
