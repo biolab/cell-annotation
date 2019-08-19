@@ -22,39 +22,32 @@ class ScoringNotImplemented(Exception):
 class AnnotateSamples:
     """
     AnnotateSamples is class used for the annotation of data items with the
-    labels Mann-Whitney U test for selecting important values and
-    the Hyper-geometric for assigning the labels.
+    labels (e.g. Cell Types) Mann-Whitney U test for selecting important values
+    and the Hyper-geometric for assigning the labels.
 
     Example for full annotation:
 
-    >>> from Orange.data import Table
-    >>> from orangecontrib.bioinformatics.utils import serverfiles
-    >>> from orangecontrib.bioinformatics.annotation.annotate_samples import \
-    ...     AnnotateSamples
-    >>> from orangecontrib.bioinformatics.widgets.utils.data import TAX_ID
+    >>> gene_expressions_df = pd.read_csv("data/DC_expMatrix_DCnMono.csv.gz",
+    ...                                   compression='gzip')
+    >>> marker_genes_df = pd.read_csv("data/panglao_gene_markers.csv.gz",
+    ...                               compression="gzip")
+    >>> # rename genes column and filter human markers
+    >>> marker_genes_df = marker_genes_df.rename(columns={'Name': 'Gene'})
+    >>> marker_genes_df = marker_genes_df[
+    ...     marker_genes_df["Organism"] == "Human"]
     >>>
-    >>> data = Table("https://datasets.orange.biolab.si/sc/aml-1k.tab.gz")
-    >>> data.attributes[TAX_ID] = "9606"  # table needs to have an organism ID
-    >>> markers_path = serverfiles.localpath_download(
-    ...     'marker_genes','panglao_gene_markers.tab')
-    >>> marker = Table(markers_path)
-    >>>
-    >>> # filter only human markers
-    >>> from Orange.data.filter import FilterString, Values
-    >>> f = FilterString("Organism", FilterString.Equal, "Human")
-    >>> markers = Values([f])(marker)
-    >>>
-    >>> annotator = AnnotateSamples()
-    >>> annotations = annotator.annotate_samples(
-    ...     data, markers, p_threshold=0.05)
+    >>> annotations = AnnotateSamples.annotate_samples(
+    ...     gene_expressions_df, marker_genes_df, num_genes=60000,
+    ...     p_threshold=0.05)
 
     Example for full manual annotation. Here annotation is split in three
     phases. We assume that data are already loaded.
 
-    >>> annotator = AnnotateSamples()
-    >>> z = annotator.mann_whitney_test(data)
-    >>> scores, p_val = AnnotateSamples.assign_annotations(z, markers, data)
-    >>> scores = annotator.filter_annotations(scores, p_val, p_threshold=0.05)
+    >>> z = AnnotateSamples.mann_whitney_test(gene_expressions_df)
+    >>> scores, p_val = AnnotateSamples.assign_annotations(
+    ...     z, marker_genes_df, gene_expressions_df, num_genes=60000)
+    >>> scores = AnnotateSamples.filter_annotations(
+    ...     scores, p_val, p_threshold=0.05)
 
     Attributes
     ----------
