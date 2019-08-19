@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from cell_annotation.annotate_samples import \
+from cellannotation.annotate_samples import \
     AnnotateSamples, SCORING_EXP_RATIO, SCORING_MARKERS_SUM, SCORING_LOG_FDR, \
     SCORING_LOG_PVALUE, PFUN_HYPERGEOMETRIC
 

@@ -4,7 +4,7 @@ import pandas as pd
 from scipy.stats.mstats import rankdata
 from scipy.stats import hypergeom, binom
 
-from cell_annotation.utils import FDR
+from cellannotation.utils import FDR
 
 SCORING_EXP_RATIO = "scoring_exp_ratio"
 SCORING_MARKERS_SUM = "scoring_sum_of_expressed_markers"
