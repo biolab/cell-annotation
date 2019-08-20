@@ -5,6 +5,12 @@ Mann-Whitney U test and Hypergeometric test. Currently, we provide examples of
 the fast annotation of gene expression data with the cell types based on marker 
 genes.
 
+## Installation
+
+The package is available at PIP and is installed with
+
+    pip install cellannotation
+
 ## Build the documentation
 
 For building the documentation one needs to have sphinx python package 
