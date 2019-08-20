@@ -1,5 +1,5 @@
 Sample Annotator
 ================
 
-.. autoclass:: orangecontrib.bioinformatics.annotation.annotate_samples.AnnotateSamples()
+.. autoclass:: cellannotation.annotation.annotate_samples.AnnotateSamples()
    :members:
