@@ -3,15 +3,16 @@
 import os
 from setuptools import setup, find_packages
 
-NAME = 'cell-annotation'
+NAME = 'cellannotation'
 VERSION = "0.1.0"
 
 AUTHOR = 'Bioinformatics Laboratory, FRI UL'
 AUTHOR_EMAIL = 'contact@orange.biolab.si'
 
 URL = 'http://biolab.si/'
-DESCRIPTION = 'Package for annotating the cells.'
-# TODO: add long description
+DESCRIPTION = 'Package for annotating the data (e.g. cell data).'
+with open('README.md') as f:
+    README = f.read()
 
 KEYWORDS = [
     'cells',
@@ -33,6 +34,7 @@ if __name__ == '__main__':
         author_email=AUTHOR_EMAIL,
         url=URL,
         description=DESCRIPTION,
+        long_description=README,
         packages=PACKAGES,
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
@@ -41,6 +43,6 @@ if __name__ == '__main__':
             "Programming Language :: Python",
             "License :: OSI Approved :: MIT License",
             "Operating System :: OS Independent",
-            "Development Status:: 3 - Alpha"
+            "Development Status :: 4 - Beta"
         ]
     )
