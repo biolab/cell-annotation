@@ -38,11 +38,11 @@ if __name__ == '__main__':
         packages=PACKAGES,
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
-        test_suite='cell_annotation.tests.suite',
+        test_suite='cellannotation.tests.suite',
         classifiers=[
             "Programming Language :: Python",
             "License :: OSI Approved :: MIT License",
             "Operating System :: OS Independent",
             "Development Status :: 4 - Beta"
         ]
-    )
+)
