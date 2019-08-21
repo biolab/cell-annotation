@@ -122,7 +122,7 @@ class TestAnnotateSamples(unittest.TestCase):
             [1/4, 1/2],
             [0, 1]])
         annotations, fdrs = self.annotator.assign_annotations(
-            z_table, self.markers, self.data, num_genes=15)
+            z_table, self.markers, self.data[:4], num_genes=15)
 
         self.assertEqual(len(attrs), len(annotations))
         self.assertEqual(len(attrs), len(fdrs))
@@ -187,3 +187,10 @@ class TestAnnotateSamples(unittest.TestCase):
         self.markers["Gene"] = pd.to_numeric(self.markers["Gene"])
         self.assertRaises(AssertionError, self.annotator.annotate_samples,
                           self.data, self.markers, num_genes=15)
+
+    def test_keep_dataframe_index(self):
+        self.data.index = np.random.randint(0, 16, len(self.data))
+        data_index = self.data.index.values.tolist()
+        annotations = self.annotator.annotate_samples(
+            self.data, self.markers, num_genes=15, scoring=SCORING_MARKERS_SUM)
+        self.assertListEqual(data_index, annotations.index.values.tolist())

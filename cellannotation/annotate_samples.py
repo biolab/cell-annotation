@@ -151,7 +151,7 @@ class AnnotateSamples:
         z = (u - mu) / (sigma + 1e-16)
 
         # pack z values to pandas dataframe
-        z_dataframe = pd.DataFrame(z, columns=data.columns)
+        z_dataframe = pd.DataFrame(z, columns=data.columns, index=data.index)
         return z_dataframe
 
     @staticmethod
@@ -314,8 +314,9 @@ class AnnotateSamples:
         scores = AnnotateSamples._score(
             scoring, p_values, fdrs, data, M, x, m, genes_order)
 
-        scores_table = pd.DataFrame(scores, columns=annotations)
-        fdrs_table = pd.DataFrame(fdrs, columns=annotations)
+        scores_table = pd.DataFrame(
+            scores, columns=annotations, index=data.index)
+        fdrs_table = pd.DataFrame(fdrs, columns=annotations, index=data.index)
 
         return scores_table, fdrs_table
 
