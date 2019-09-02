@@ -81,7 +81,7 @@ class AnnotateSamples:
         data : array_like
             Numpy array with data. Columns are genes, rows are cells.
         """
-        return data / np.sum(data, axis=1)[:, None] * 1e6
+        return data.divide(np.sum(data, axis=1)[:, None]) * 1e6
 
     @staticmethod
     def _ranks(data):
