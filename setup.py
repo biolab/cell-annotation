@@ -3,7 +3,7 @@
 import os
 from setuptools import setup, find_packages
 
-NAME = 'cellannotation'
+NAME = 'point-annotator'
 VERSION = "0.1.0"
 
 AUTHOR = 'Bioinformatics Laboratory, FRI UL'
@@ -15,8 +15,10 @@ with open('README.md') as f:
     README = f.read()
 
 KEYWORDS = [
-    'cells',
-    'annotation'
+    'annotator',
+    'annotation',
+    'points',
+    'data'
 ]
 PACKAGES = find_packages()
 
