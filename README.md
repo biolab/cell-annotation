@@ -1,4 +1,4 @@
-# cell-annotation
+# point-annotator
 
 This package provides functionalities to annotate data with labels based on the 
 Mann-Whitney U test and Hypergeometric test. Currently, we provide examples of 
@@ -9,7 +9,7 @@ genes.
 
 The package is available at PIP and is installed with
 
-    pip install cellannotation
+    pip install point-annotator
 
 ## Build the documentation
 
