@@ -40,7 +40,7 @@ if __name__ == '__main__':
         packages=PACKAGES,
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
-        test_suite='cellannotation.tests.suite',
+        test_suite='pointannotator.tests.suite',
         classifiers=[
             "Programming Language :: Python",
             "License :: OSI Approved :: MIT License",
