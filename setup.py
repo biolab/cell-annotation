@@ -1,50 +1,30 @@
-#!/usr/bin/env python3
-
-import os
-from setuptools import setup, find_packages
-
-NAME = 'point-annotator'
-VERSION = "0.1.0"
-
-AUTHOR = 'Bioinformatics Laboratory, FRI UL'
-AUTHOR_EMAIL = 'contact@orange.biolab.si'
-
-URL = 'http://biolab.si/'
-DESCRIPTION = 'Package for annotating the data (e.g. cell data).'
-with open('README.md') as f:
-    README = f.read()
-
-KEYWORDS = [
-    'annotator',
-    'annotation',
-    'points',
-    'data'
-]
-PACKAGES = find_packages()
-
-INSTALL_REQUIRES = sorted(set(
-    line.partition('#')[0].strip()
-    for line in open(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
-) - {''})
-
+#!/usr/bin/env python
+import setuptools
 
 if __name__ == '__main__':
-    setup(
-        name=NAME,
-        version=VERSION,
-        author=AUTHOR,
-        author_email=AUTHOR_EMAIL,
-        url=URL,
-        description=DESCRIPTION,
-        long_description=README,
-        packages=PACKAGES,
-        keywords=KEYWORDS,
-        install_requires=INSTALL_REQUIRES,
-        test_suite='pointannotator.tests.suite',
-        classifiers=[
-            "Programming Language :: Python",
-            "License :: OSI Approved :: MIT License",
-            "Operating System :: OS Independent",
-            "Development Status :: 4 - Beta"
-        ]
-)
+    setuptools.setup(
+        use_scm_version=True,
+        setup_requires=[
+            'setuptools-scm',
+            'setuptools>=40.0'
+        ],
+        install_requires=[
+            "pandas >= 0.24.0",
+            "numpy",
+            "scipy"
+        ],
+        extras_require={
+            'doc': ['sphinx', 'recommonmark'],
+            'test': [
+                'flake8~=3.7.8',
+                'flake8-comprehensions~=2.2.0',
+                'flake8-black~=0.1.0',
+                'pep8-naming~=0.8.2',
+                'isort~=4.3.21',
+                'pytest~=5.1.0',
+                'pytest-cov~=2.7.1',
+                'coverage~=4.5.4',
+                'codecov~=2.0.15'
+            ],
+        },
+    )
