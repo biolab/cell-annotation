@@ -128,6 +128,9 @@ class AnnotateSamples:
         pd.DataFrame
             Z-value for each item.
         """
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("Data argument must be pandas DataFrame")
+
         if len(data) <= 1:
             return None
 
@@ -278,10 +281,18 @@ class AnnotateSamples:
         pd.DataFrame
             Annotation fdrs
         """
-        assert available_annotations["Gene"].dtype == object, \
-            "The type of genes column must be string/object"
-        assert available_annotations["Cell Type"].dtype == object, \
-            "The type of genes column must be string/object"
+        if not isinstance(z_values, pd.DataFrame):
+            raise TypeError("z_values argument must be pandas DataFrame")
+        if not isinstance(available_annotations, pd.DataFrame):
+            raise TypeError("available_annotations argument must be pandas "
+                            "DataFrame")
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("data argument must be pandas DataFrame")
+        if not available_annotations["Gene"].dtype == object:
+            raise TypeError("The type of genes column must be string/object")
+        if not available_annotations["Cell Type"].dtype == object:
+            raise TypeError("The type of cell type column must be "
+                            "string/object")
 
         # select function for p-value
         if p_value_fun == PFUN_HYPERGEOMETRIC:
@@ -345,6 +356,11 @@ class AnnotateSamples:
         pd.Dataframe
             Filtered scores for each annotations for each cell
         """
+        if not isinstance(scores, pd.DataFrame):
+            raise TypeError("scores argument must be pandas DataFrame")
+        if not isinstance(p_values, pd.DataFrame):
+            raise TypeError("p_values argument must be pandas DataFrame")
+
         scores = scores.copy()  # do not want to edit values inplace
         scores[p_values > p_threshold] = np.nan
 
@@ -394,8 +410,14 @@ class AnnotateSamples:
         pd.DataFrame
             Cell type most important for each cell.
         """
-        assert len(data) > 1, "At least two data items are required for " \
-                              "method to work."
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("data argument must be pandas DataFrame")
+        if not isinstance(available_annotations, pd.DataFrame):
+            raise TypeError("available_annotations argument must be pandas "
+                            "DataFrame")
+        if len(data) <= 1:
+            raise ValueError("At least two data items are required for "
+                             "method to work.")
 
         if normalize:
             data = AnnotateSamples.log_cpm(data)

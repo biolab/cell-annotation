@@ -185,7 +185,7 @@ class TestAnnotateSamples(unittest.TestCase):
 
     def test_markers_wrong_type(self):
         self.markers["Gene"] = pd.to_numeric(self.markers["Gene"])
-        self.assertRaises(AssertionError, self.annotator.annotate_samples,
+        self.assertRaises(TypeError, self.annotator.annotate_samples,
                           self.data, self.markers, num_genes=15)
 
     def test_keep_dataframe_index(self):
