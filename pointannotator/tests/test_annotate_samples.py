@@ -16,7 +16,7 @@ class TestAnnotateSamples(unittest.TestCase):
              ["Type 1", "114"],
              ["Type 2", "211"], ["Type 2", "212"], ["Type 2", "213"],
              ["Type 2", "214"]],
-            columns=["Cell Type", "Gene"])
+            columns=["Annotations", "Attributes"])
 
         genes = ["111", "112", "113", "114", "211", "212", "213", "214"]
         self.data = pd.DataFrame(np.array(
@@ -35,7 +35,7 @@ class TestAnnotateSamples(unittest.TestCase):
 
     def test_artificial_data(self):
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_genes=15)
+            self.data, self.markers, num_all_attributes=15)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -54,10 +54,10 @@ class TestAnnotateSamples(unittest.TestCase):
              ["Type 2", "211"], ["Type 2", "212"], ["Type 2", "213"],
              ["Type 2", "214"],
              ["Type 3", "311"], ["Type 3", "312"], ["Type 3", "313"]],
-            columns=["Cell Type", "Gene"])
+            columns=["Annotations", "Attributes"])
 
         annotations = self.annotator.annotate_samples(self.data, markers,
-                                                      num_genes=20)
+                                                      num_all_attributes=20)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -67,7 +67,7 @@ class TestAnnotateSamples(unittest.TestCase):
         self.assertGreaterEqual(np.nanmin(annotations), 0)
 
         annotations = self.annotator.annotate_samples(
-            self.data, markers, num_genes=20, return_nonzero_annotations=False)
+            self.data, markers, num_all_attributes=20, return_nonzero_annotations=False)
         self.assertEqual(len(annotations), len(self.data))
         self.assertEqual(len(annotations.iloc[0]), 3)  # two types in the data
         self.assertGreater(np.nansum(annotations), 0)
@@ -80,7 +80,7 @@ class TestAnnotateSamples(unittest.TestCase):
         """
         annotator = AnnotateSamples()
         annotations = annotator.annotate_samples(
-            self.data, self.markers, num_genes=15,
+            self.data, self.markers, num_all_attributes=15,
             p_value_fun=PFUN_HYPERGEOMETRIC)
 
         self.assertEqual(type(annotations), pd.DataFrame)
@@ -94,7 +94,7 @@ class TestAnnotateSamples(unittest.TestCase):
         self.data = self.data.iloc[:2]
 
         annotations = self.annotator.annotate_samples(self.data, self.markers,
-                                                      num_genes=15)
+                                                      num_all_attributes=15)
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
 
@@ -122,7 +122,7 @@ class TestAnnotateSamples(unittest.TestCase):
             [1/4, 1/2],
             [0, 1]])
         annotations, fdrs = self.annotator.assign_annotations(
-            z_table, self.markers, self.data[:4], num_genes=15)
+            z_table, self.markers, self.data[:4], num_all_attributes=15)
 
         self.assertEqual(len(attrs), len(annotations))
         self.assertEqual(len(attrs), len(fdrs))
@@ -141,7 +141,7 @@ class TestAnnotateSamples(unittest.TestCase):
     def test_scoring(self):
         # scoring SCORING_EXP_RATIO
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_genes=15, scoring=SCORING_EXP_RATIO)
+            self.data, self.markers, num_all_attributes=15, scoring=SCORING_EXP_RATIO)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -152,7 +152,7 @@ class TestAnnotateSamples(unittest.TestCase):
 
         # scoring SCORING_MARKERS_SUM
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_genes=15, scoring=SCORING_MARKERS_SUM)
+            self.data, self.markers, num_all_attributes=15, scoring=SCORING_MARKERS_SUM)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -165,7 +165,7 @@ class TestAnnotateSamples(unittest.TestCase):
 
         # scoring SCORING_LOG_FDR
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_genes=15, scoring=SCORING_LOG_FDR)
+            self.data, self.markers, num_all_attributes=15, scoring=SCORING_LOG_FDR)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -173,7 +173,7 @@ class TestAnnotateSamples(unittest.TestCase):
 
         # scoring SCORING_LOG_PVALUE
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_genes=15, scoring=SCORING_LOG_PVALUE)
+            self.data, self.markers, num_all_attributes=15, scoring=SCORING_LOG_PVALUE)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -184,13 +184,19 @@ class TestAnnotateSamples(unittest.TestCase):
         self.assertTupleEqual(self.data.shape, norm_data.shape)
 
     def test_markers_wrong_type(self):
-        self.markers["Gene"] = pd.to_numeric(self.markers["Gene"])
-        self.assertRaises(AssertionError, self.annotator.annotate_samples,
+        self.markers["Attributes"] = pd.to_numeric(self.markers["Attributes"])
+        self.assertRaises(TypeError, self.annotator.annotate_samples,
                           self.data, self.markers, num_genes=15)
 
     def test_keep_dataframe_index(self):
         self.data.index = np.random.randint(0, 16, len(self.data))
         data_index = self.data.index.values.tolist()
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_genes=15, scoring=SCORING_MARKERS_SUM)
+            self.data, self.markers, num_all_attributes=15, scoring=SCORING_MARKERS_SUM)
         self.assertListEqual(data_index, annotations.index.values.tolist())
+
+    def test_no_num_all_attributes(self):
+        annotations = self.annotator.annotate_samples(
+            self.data, self.markers)
+
+        self.assertEqual(type(annotations), pd.DataFrame)
