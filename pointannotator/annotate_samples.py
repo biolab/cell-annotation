@@ -78,7 +78,7 @@ class AnnotateSamples:
         data : pd.DataFrame
             Tabular data.
         """
-        return data.divide(np.sum(data, axis=1)[:, None]) * 1e6
+        return data.divide(data.sum(axis=1), axis=0) * 1e6
 
     @staticmethod
     def _ranks(data):

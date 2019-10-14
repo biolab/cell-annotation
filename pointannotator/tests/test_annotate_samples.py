@@ -1,11 +1,45 @@
 import unittest
+from functools import wraps
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csc_matrix, csr_matrix
 
 from pointannotator.annotate_samples import \
     AnnotateSamples, SCORING_EXP_RATIO, SCORING_MARKERS_SUM, SCORING_LOG_FDR, \
     SCORING_LOG_PVALUE, PFUN_HYPERGEOMETRIC
+
+
+def dense_sparse(test_case):
+    # type: (Callable) -> Callable
+    """Run a single test case on both dense and sparse data."""
+    @wraps(test_case)
+    def _wrapper(self):
+        # Make sure to call setUp and tearDown methods in between test runs so
+        # any widget state doesn't interfere between tests
+        def _setup_teardown():
+            self.tearDown()
+            self.setUp()
+
+        def to_pandas_sparse(spmatrix, columns, indices):
+            return pd.DataFrame.sparse.from_spmatrix(
+                spmatrix, columns=columns, index=indices)
+
+        def pandas_from_csc(df):
+            return to_pandas_sparse(
+                csc_matrix(df.values), columns=df.columns, indices=df.index)
+
+        def pandas_from_csr(df):
+            return to_pandas_sparse(
+                csr_matrix(df.values), columns=df.columns, indices=df.index)
+
+        test_case(self, lambda x: x)
+        _setup_teardown()
+        test_case(self, pandas_from_csr)
+        _setup_teardown()
+        test_case(self, pandas_from_csc)
+
+    return _wrapper
 
 
 class TestAnnotateSamples(unittest.TestCase):
@@ -33,9 +67,10 @@ class TestAnnotateSamples(unittest.TestCase):
         )
         self.annotator = AnnotateSamples()
 
-    def test_artificial_data(self):
+    @dense_sparse
+    def test_artificial_data(self, array):
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15)
+            array(self.data), self.markers, num_all_attributes=15)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -44,7 +79,8 @@ class TestAnnotateSamples(unittest.TestCase):
         self.assertLessEqual(np.nanmax(annotations), 1)
         self.assertGreaterEqual(np.nanmin(annotations), 0)
 
-    def test_remove_empty_column(self):
+    @dense_sparse
+    def test_remove_empty_column(self, array):
         """
         Type 3 column must be removed here
         """
@@ -56,8 +92,8 @@ class TestAnnotateSamples(unittest.TestCase):
              ["Type 3", "311"], ["Type 3", "312"], ["Type 3", "313"]],
             columns=["Annotations", "Attributes"])
 
-        annotations = self.annotator.annotate_samples(self.data, markers,
-                                                      num_all_attributes=20)
+        annotations = self.annotator.annotate_samples(
+            array(self.data), markers, num_all_attributes=20)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -67,20 +103,22 @@ class TestAnnotateSamples(unittest.TestCase):
         self.assertGreaterEqual(np.nanmin(annotations), 0)
 
         annotations = self.annotator.annotate_samples(
-            self.data, markers, num_all_attributes=20, return_nonzero_annotations=False)
+            array(self.data), markers, num_all_attributes=20,
+            return_nonzero_annotations=False)
         self.assertEqual(len(annotations), len(self.data))
         self.assertEqual(len(annotations.iloc[0]), 3)  # two types in the data
         self.assertGreater(np.nansum(annotations), 0)
         self.assertLessEqual(np.nanmax(annotations), 1)
         self.assertGreaterEqual(np.nanmin(annotations), 0)
 
-    def test_sf(self):
+    @dense_sparse
+    def test_sf(self, array):
         """
         Test annotations with hypergeom.sf
         """
         annotator = AnnotateSamples()
         annotations = annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15,
+            array(self.data), self.markers, num_all_attributes=15,
             p_value_fun=PFUN_HYPERGEOMETRIC)
 
         self.assertEqual(type(annotations), pd.DataFrame)
@@ -90,23 +128,26 @@ class TestAnnotateSamples(unittest.TestCase):
         self.assertLessEqual(np.nanmax(annotations), 1)
         self.assertGreaterEqual(np.nanmin(annotations), 0)
 
-    def test_two_example(self):
+    @dense_sparse
+    def test_two_example(self, array):
         self.data = self.data.iloc[:2]
 
-        annotations = self.annotator.annotate_samples(self.data, self.markers,
-                                                      num_all_attributes=15)
+        annotations = self.annotator.annotate_samples(
+            array(self.data), self.markers, num_all_attributes=15)
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
 
-    def test_select_attributes(self):
-        z = self.annotator.mann_whitney_test(self.data)
+    @dense_sparse
+    def test_select_attributes(self, array):
+        z = self.annotator.mann_whitney_test(array(self.data))
 
         self.assertEqual(z.shape, self.data.shape)
         self.assertGreaterEqual(z.iloc[0, 0], 1)
         self.assertGreaterEqual(z.iloc[0, 1], 1)
         self.assertGreaterEqual(z.iloc[0, 3], 1)
 
-    def test_assign_annotations(self):
+    @dense_sparse
+    def test_assign_annotations(self, array):
         z = np.array([
             [1.1, 1.1, 1.1, 1.1, 0, 0, 0, 0],
             [1.1, 1.1, 0, 0, 1.1, 0, 0, 0],
@@ -122,7 +163,8 @@ class TestAnnotateSamples(unittest.TestCase):
             [1/4, 1/2],
             [0, 1]])
         annotations, fdrs = self.annotator.assign_annotations(
-            z_table, self.markers, self.data[:4], num_all_attributes=15)
+            array(z_table), self.markers, array(self.data[:4]),
+            num_all_attributes=15)
 
         self.assertEqual(len(attrs), len(annotations))
         self.assertEqual(len(attrs), len(fdrs))
@@ -138,10 +180,12 @@ class TestAnnotateSamples(unittest.TestCase):
 
         np.testing.assert_array_less(fdrs, exp_fdrs_smaller)
 
-    def test_scoring(self):
+    @dense_sparse
+    def test_scoring(self, array):
         # scoring SCORING_EXP_RATIO
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15, scoring=SCORING_EXP_RATIO)
+            array(self.data), self.markers, num_all_attributes=15,
+            scoring=SCORING_EXP_RATIO)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -152,7 +196,8 @@ class TestAnnotateSamples(unittest.TestCase):
 
         # scoring SCORING_MARKERS_SUM
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15, scoring=SCORING_MARKERS_SUM)
+            array(self.data), self.markers, num_all_attributes=15,
+            scoring=SCORING_MARKERS_SUM)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -165,7 +210,8 @@ class TestAnnotateSamples(unittest.TestCase):
 
         # scoring SCORING_LOG_FDR
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15, scoring=SCORING_LOG_FDR)
+            array(self.data), self.markers, num_all_attributes=15,
+            scoring=SCORING_LOG_FDR)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
@@ -173,30 +219,38 @@ class TestAnnotateSamples(unittest.TestCase):
 
         # scoring SCORING_LOG_PVALUE
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15, scoring=SCORING_LOG_PVALUE)
+            array(self.data), self.markers, num_all_attributes=15,
+            scoring=SCORING_LOG_PVALUE)
 
         self.assertEqual(type(annotations), pd.DataFrame)
         self.assertEqual(len(annotations), len(self.data))
         self.assertEqual(len(annotations.iloc[0]), 2)  # two types in the data
 
-    def test_log_cpm(self):
-        norm_data = self.annotator.log_cpm(self.data)
+    @dense_sparse
+    def test_log_cpm(self, array):
+        norm_data = self.annotator.log_cpm(array(self.data))
         self.assertTupleEqual(self.data.shape, norm_data.shape)
+        # log_cpm must return array of same type
+        self.assertEqual(type(array(self.data)), type(norm_data))
 
-    def test_markers_wrong_type(self):
+    @dense_sparse
+    def test_markers_wrong_type(self, array):
         self.markers["Attributes"] = pd.to_numeric(self.markers["Attributes"])
         self.assertRaises(TypeError, self.annotator.annotate_samples,
-                          self.data, self.markers, num_genes=15)
+                          array(self.data), self.markers, num_genes=15)
 
-    def test_keep_dataframe_index(self):
+    @dense_sparse
+    def test_keep_dataframe_index(self, array):
         self.data.index = np.random.randint(0, 16, len(self.data))
         data_index = self.data.index.values.tolist()
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers, num_all_attributes=15, scoring=SCORING_MARKERS_SUM)
+            array(self.data), self.markers, num_all_attributes=15,
+            scoring=SCORING_MARKERS_SUM)
         self.assertListEqual(data_index, annotations.index.values.tolist())
 
-    def test_no_num_all_attributes(self):
+    @dense_sparse
+    def test_no_num_all_attributes(self, array):
         annotations = self.annotator.annotate_samples(
-            self.data, self.markers)
+            array(self.data), self.markers)
 
         self.assertEqual(type(annotations), pd.DataFrame)
